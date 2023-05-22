@@ -18,6 +18,7 @@ namespace Ealse.Growatt.Api
         public string InverterEnergyDataMonthChartUrl { get; set; } = "energy/compare/getDevicesMonthChart";
         public string InverterEnergyDataYearChartUrl { get; set; } = "energy/compare/getDevicesYearChart";
         public string InverterEnergyDataTotalChartUrl { get; set; } = "energy/compare/getDevicesTotalChart";
+         public string InverterMixDataMonthChartUrl { get; set; } = "panel/mix/getMIXEnergyMonthChart";
         public string DevicesByPlantList { get; set; } = "panel/getDevicesByPlantList";
         public string WeatherByPlantId { get; set; } = "index/getWeatherByPlantId";
         public string StorageTotalData { get; set; } = "panel/storage/getStorageTotalData";
@@ -178,6 +179,27 @@ namespace Ealse.Growatt.Api
                 });
 
             return await GetPostResponseData<List<double>>(content, new Uri(GrowattApiBaseUrl, InverterEnergyDataMonthChartUrl), $"obj.0.datas.{param}");
+        }
+        /// <summary>
+        /// Gets mix of energy in/out for each day of the given month.
+        /// </summary>
+        /// <param name="plantId"></param>       
+        /// <returns>Amount of energy by category for each day of the given month.</returns>
+        public async Task<InverterMixData> GetPlantMixMonthChartData(string plantId, DateTime date, string serialNumber = null, string type = null, string param = "energy")
+        {
+            var jsonDataType = type is null ? string.IsNullOrEmpty(serialNumber) ? "plant" : "inv" : type;
+            var sn = type is null && serialNumber != null ? serialNumber : plantId;
+            var content = new FormUrlEncodedContent(new[]
+            {
+                new KeyValuePair<string, string>("plantId", plantId),
+                new KeyValuePair<string, string>("date", date.ToString("yyyy-MM")),
+                //new KeyValuePair<string, string>("jsonData", $"[{{\"type\":\"{jsonDataType}\",\"sn\":\"{sn}\",\"params\":\"{param}\"}}]"),
+                new KeyValuePair<string, string>("mixSn", sn)
+            });
+            var datas = await GetPostResponseData<InverterMixData>(content, new Uri(GrowattApiBaseUrl, InverterMixDataMonthChartUrl), $"obj.charts");
+
+            return datas;
+
         }
 
         /// <summary>
